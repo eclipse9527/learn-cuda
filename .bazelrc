@@ -1,0 +1,9 @@
+build --cxxopt="-fdiagnostics-color=always"
+
+build --@rules_cuda//cuda:enable_cuda
+build --@rules_cuda//cuda:cuda_targets=sm_80
+
+build:dbg --compilation_mode=dbg
+build:dbg --@rules_cuda//cuda:copts=-G
+
+build:opt --compilation_mode=opt
