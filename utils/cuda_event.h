@@ -5,7 +5,7 @@
 
 class CudaEvent {
  public:
-  DISALLOW_COPY_AND_MOVE(CudaEvent);
+  DISALLOW_COPY_AND_ASSIGN(CudaEvent)
   explicit CudaEvent(unsigned int flags = cudaEventDefault) {
     CUDA_CHECK(cudaEventCreateWithFlags(&cuda_event_, flags));
   }
