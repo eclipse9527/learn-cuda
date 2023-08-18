@@ -46,12 +46,12 @@ int main() {
   Saxpy<<<(N + 511) / 512, 512>>>(N, 2.0f, d_x, d_y);
   CUDA_CHECK(cudaEventRecord(stop.get()));
 
-  cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost);
+  CUDA_CHECK(cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost));
 
-  cudaEventSynchronize(stop.get());
+  CUDA_CHECK(cudaEventSynchronize(stop.get()));
 
   float elapsed_time_ms = 0;
-  cudaEventElapsedTime(&elapsed_time_ms, start.get(), stop.get());
+  CUDA_CHECK(cudaEventElapsedTime(&elapsed_time_ms, start.get(), stop.get()));
 
   printf("Effective Bandwidth (GB/s): %f\n", N * 4 * 3 / elapsed_time_ms / 1e6);
 
