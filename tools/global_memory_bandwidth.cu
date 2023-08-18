@@ -3,10 +3,10 @@
 #include "utils/cuda_event.h"
 #include "utils/macros.h"
 
-__global__ void Saxpy(int n, float a, float *x, float *y) {
+__global__ void Saxpy(int n, float *x, float *y) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < n) {
-    y[i] = a * x[i] + y[i];
+    y[i] = x[i] + y[i];
   }
 }
 
@@ -30,28 +30,19 @@ int main() {
 
   x = (float *)malloc(N * sizeof(float));
   y = (float *)malloc(N * sizeof(float));
-  for (int i = 0; i < N; i++) {
-    x[i] = 1.0f;
-    y[i] = 2.0f;
-  }
   CUDA_CHECK(cudaMalloc(&d_x, N * sizeof(float)));
   CUDA_CHECK(cudaMalloc(&d_y, N * sizeof(float)));
 
   CudaEvent start, stop;
 
-  CUDA_CHECK(cudaMemcpy(d_x, x, N * sizeof(float), cudaMemcpyHostToDevice));
-  CUDA_CHECK(cudaMemcpy(d_y, y, N * sizeof(float), cudaMemcpyHostToDevice));
-
   CUDA_CHECK(cudaEventRecord(start.get()));
-  Saxpy<<<(N + 511) / 512, 512>>>(N, 2.0f, d_x, d_y);
+  Saxpy<<<(N + 511) / 512, 512>>>(N, d_x, d_y);
   CUDA_CHECK(cudaEventRecord(stop.get()));
 
-  cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost);
-
-  cudaEventSynchronize(stop.get());
+  CUDA_CHECK(cudaEventSynchronize(stop.get()));
 
   float elapsed_time_ms = 0;
-  cudaEventElapsedTime(&elapsed_time_ms, start.get(), stop.get());
+  CUDA_CHECK(cudaEventElapsedTime(&elapsed_time_ms, start.get(), stop.get()));
 
   printf("Effective Bandwidth (GB/s): %f\n", N * 4 * 3 / elapsed_time_ms / 1e6);
 
