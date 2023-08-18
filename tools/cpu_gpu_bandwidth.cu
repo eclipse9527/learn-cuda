@@ -42,23 +42,23 @@ int main() {
   const uint32_t bytes = N * sizeof(float);
 
   // host arrays
-  float *h_aPageable, *h_bPageable;
-  float *h_aPinned, *h_bPinned;
+  float *h_a_pageable, *h_b_pageable;
+  float *h_a_pinned, *h_b_pinned;
 
   // device array
   float *d_a;
 
   // allocate and initialize
-  h_aPageable = (float *)malloc(bytes);                    // host pageable
-  h_bPageable = (float *)malloc(bytes);                    // host pageable
-  CUDA_CHECK(cudaMallocHost((void **)&h_aPinned, bytes));  // host pinned
-  CUDA_CHECK(cudaMallocHost((void **)&h_bPinned, bytes));  // host pinned
-  CUDA_CHECK(cudaMalloc((void **)&d_a, bytes));            // device
+  h_a_pageable = (float *)malloc(bytes);                    // host pageable
+  h_b_pageable = (float *)malloc(bytes);                    // host pageable
+  CUDA_CHECK(cudaMallocHost((void **)&h_a_pinned, bytes));  // host pinned
+  CUDA_CHECK(cudaMallocHost((void **)&h_b_pinned, bytes));  // host pinned
+  CUDA_CHECK(cudaMalloc((void **)&d_a, bytes));             // device
 
-  for (uint32_t i = 0; i < N; ++i) h_aPageable[i] = i;
-  memcpy(h_aPinned, h_aPageable, bytes);
-  memset(h_bPageable, 0, bytes);
-  memset(h_bPinned, 0, bytes);
+  memset(h_a_pageable, 1, bytes);
+  memset(h_b_pageable, 2, bytes);
+  memset(h_a_pinned, 1, bytes);
+  memset(h_b_pinned, 2, bytes);
 
   // output device info and transfer size
   cudaDeviceProp prop;
@@ -68,15 +68,15 @@ int main() {
   printf("Transfer size (MB): %d\n", bytes / (1024 * 1024));
 
   // perform copies and report bandwidth
-  ProfileCopies(h_aPageable, h_bPageable, d_a, N, "Pageable");
-  ProfileCopies(h_aPinned, h_bPinned, d_a, N, "Pinned");
+  ProfileCopies(h_a_pageable, h_b_pageable, d_a, N, "Pageable");
+  ProfileCopies(h_a_pinned, h_b_pinned, d_a, N, "Pinned");
 
   // cleanup
   cudaFree(d_a);
-  cudaFreeHost(h_aPinned);
-  cudaFreeHost(h_bPinned);
-  free(h_aPageable);
-  free(h_bPageable);
+  cudaFreeHost(h_a_pinned);
+  cudaFreeHost(h_b_pinned);
+  free(h_a_pageable);
+  free(h_b_pageable);
 
   return 0;
 }
